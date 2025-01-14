@@ -44,7 +44,7 @@ usersController.createNewUser = (req, res) => {
 
 usersController.deleteUser = (req, res) => {
   /*buscar por id*/
-  const userId = req.body.userId;
+  const userId = req.params.id;
   /*primero leer*/
   fs.readFile(pathFile, (error, data) => {
     if (error) {
@@ -69,7 +69,7 @@ usersController.deleteUser = (req, res) => {
 
 usersController.updateUsers = (req, res) => {
   /*buscar por id*/
-  const userId = req.body.userId;
+  const userId = req.params.id;
   /*primero leemos para buscar*/
   fs.readFile(pathFile, (error, data) => {
     if (error) {
@@ -86,8 +86,8 @@ usersController.updateUsers = (req, res) => {
         res.status(404).json({ error: "Usuario no encontrado" });
       }
       /*escribir los nuevos datos*/
-      userFound.name = req.body.name;
-      userFound.email = req.body.email;
+      userFound.name = req.body.name || userFound.name;
+      userFound.email = req.body.email || userFound.email;
       /*escribir lo nuevo*/
       fs.writeFile(pathFile, JSON.stringify(jsonData), (error) => {
         if (error) {
