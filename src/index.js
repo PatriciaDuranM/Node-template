@@ -16,9 +16,10 @@ app.get("/read", (req, res) => {
 Esto de aqui abajo es para leer archivos*/
   fs.readFile(pathFile, (error, data) => {
     if (error) {
-      /*enviamos una respuesta*/
+      /*enviamos una respuesta de error*/
       res.send("Error al leer el archivo");
     } else {
+      /*Guardamos*/
       const jsonData = JSON.parse(data);
       res.send(jsonData);
     }
@@ -54,25 +55,101 @@ app.get("/write", (req, res) => {
 /* Enviar data desde la página web hasta los datos nuestros guardados con CREATE
 El metodo create es write */
 
-app.post("/create", (req, res) => {
-  console.log(req.body);
-  fs.writeFile(pathFile, JSON.stringify(req.body), (error) => {
+/*LEER*/
+app.get("/read", (req, res) => {
+  /*Primero leemos*/
+  fs.readFile(pathFile, (error, data) => {
     if (error) {
-      res.send("Error al guardar la informacion");
+      /*enviamos una respuesta de error*/
+      res.send("Error al leer el archivo");
+    } else {
+      /*Guardamos la información leida*/
+      const jsonData = JSON.parse(data);
+      res.send(jsonData);
     }
-    res.send("Dato guardado correctamente");
   });
 });
 
-/* Actualizar los datos con PATCH*/
-app.patch("/update", (req, res) => {
+/*CREAR*/
+app.post("/create", (req, res) => {
   console.log(req.body);
-  res.end();
+  /*Los nuevos datos que introducimos son en req.body*/
+  const newUser = req.body;
+  /*Primero Leer los datos disponibles*/
+  fs.readFile(pathFile, (error, data) => {
+    if (error) {
+      /*enviamos una respuesta de error si no se ha leido bien*/
+      res.send("Error al leer el archivo");
+    } else {
+      /*guardar los datos originales*/
+      const jsonData = JSON.parse(data);
+      /*guardar los datos originales + los nuevos que introucidmos de new data*/
+      const newData = [...jsonData, newUser];
+      /*Tenemos todos los datos en newData, ahora tenemos que escribirlos*/
+      fs.writeFile(pathFile, JSON.stringify(newData), (error) => {
+        if (error) {
+          res.send("Error al guardar la informacion");
+        } else {
+          res.send(newData);
+        }
+      });
+    }
+  });
 });
 
+/* ACTUALIZAR los datos con PATCH*/
+app.patch("/update", (req, res) => {
+  /*buscar por id*/
+  const userId = req.body.userId;
+  /*primero leemos para buscar*/
+  fs.readFile(pathFile, (error, data) => {
+    if (error) {
+      /*enviamos una respuesta de error si no se ha leido bien*/
+      res.send("Error al leer el archivo");
+    } else {
+      /*guardar los datos originales*/
+      const jsonData = JSON.parse(data);
+      /*econtrar el usuari por el id*/
+      const userFound = jsonData.find((user) => user.userId === userId);
+      /*escribir los nuevos datos*/
+      userFound.name = req.body.name;
+      userFound.email = req.body.email;
+      /*escribir lo nuevo*/
+      fs.writeFile(pathFile, JSON.stringify(jsonData), (error) => {
+        if (error) {
+          res.send("Error al guardar la informacion");
+        } else {
+          res.send(jsonData);
+        }
+      });
+    }
+  });
+});
+
+/*BORRAR*/
 app.delete("/delete", (req, res) => {
-  console.log(req.body);
-  res.end();
+  /*buscar por id*/
+  const userId = req.body.userId;
+  /*primero leer*/
+  fs.readFile(pathFile, (error, data) => {
+    if (error) {
+      /*enviamos una respuesta de error si no se ha leido bien*/
+      res.send("Error al leer el archivo");
+    } else {
+      /*guardar los datos originales*/
+      const jsonData = JSON.parse(data);
+      /*econtrar el usuario por el id y con filter, queremos que nos muestre todos menos ese para borrarlo*/
+      const usersUpdate = jsonData.filter((user) => user.userId !== userId);
+      /*escribir lo nuevo*/
+      fs.writeFile(pathFile, JSON.stringify(usersUpdate), (error) => {
+        if (error) {
+          res.send("Error al guardar la informacion");
+        } else {
+          res.send(usersUpdate);
+        }
+      });
+    }
+  });
 });
 
 app.listen(port, () => {
